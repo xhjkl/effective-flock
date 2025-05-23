@@ -35,7 +35,7 @@ pub async fn run() -> Result<(), Box<dyn Error>> {
         for row in 1..=ROWS_PER_TABLE as i32 {
             let key = row.to_be_bytes();
             let val = format!("value{}_{}", table_idx, row);
-            batch.put_cf(cf, &key, val.as_bytes());
+            batch.put_cf(cf, key, val.as_bytes());
         }
         db.write(batch)?;
     }
