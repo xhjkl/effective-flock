@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: postgres
+          POSTGRES_INITDB_ARGS: >-
+            -c shared_buffers=1024MB
+            -c work_mem=64MB
+            -c temp_buffers=64MB
+            -c wal_level=replica
+            -c fsync=off
+            -c synchronous_commit=off
+            -c max_wal_size=1GB
+            -c min_wal_size=80MB
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Rust
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: stable
+    - name: Run
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+      run: |
+        for i in {1..10}; do
+          cargo run --release
+          echo
+        done
