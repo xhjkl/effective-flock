@@ -6,7 +6,7 @@ use std::error::Error;
 use std::fs;
 use std::time::Instant;
 
-use crate::common::{NUM_TABLES, ROWS_PER_TABLE};
+use crate::common::{NUM_TABLES, READ_SAMPLE, ROWS_PER_TABLE};
 
 /// RocksDB key-value benchmark
 pub async fn run() -> Result<(), Box<dyn Error>> {
@@ -49,6 +49,8 @@ pub async fn run() -> Result<(), Box<dyn Error>> {
         .collect();
     let mut rng = rng();
     read_keys.shuffle(&mut rng);
+    // Only read a small sample to match Postgres side
+    read_keys.truncate(READ_SAMPLE);
 
     // Group keys by table index
     let mut groups: HashMap<usize, Vec<Vec<u8>>> = HashMap::new();

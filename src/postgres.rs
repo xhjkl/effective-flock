@@ -3,6 +3,7 @@ use tokio_postgres::Client;
 use tokio_postgres::NoTls;
 
 use crate::common::NUM_TABLES;
+use crate::common::READ_SAMPLE;
 use crate::common::ROWS_PER_TABLE;
 
 async fn prepare_cat_tables_if_needed(client: &Client) -> Result<(), Box<dyn std::error::Error>> {
@@ -121,7 +122,13 @@ async fn complex_roundtrip(client: &Client) -> Result<(), Box<dyn std::error::Er
         .collect();
     // constrained cat selects in a single UNION ALL query using sample ext_ids fetched from DB
     let sample_rows = client
-        .query("SELECT ext_id FROM cat_value_1 LIMIT 4", &[])
+        .query(
+            &format!(
+                "SELECT DISTINCT ext_id FROM cat_value_1 LIMIT {}",
+                READ_SAMPLE
+            ),
+            &[],
+        )
         .await?;
     let sample_ids: Vec<String> = sample_rows.iter().map(|r| r.get(0)).collect();
     let sample_ids_str = sample_ids
